@@ -1,0 +1,156 @@
+// lib/types.ts
+
+// --- Enums & Constants ---
+
+export const TIENDAS = [
+  'Goodwill Outlet', 
+  'Goodwill', 
+  'Ross', 
+  'Burlington', 
+  'Community Aid', 
+  'Otra'
+] as const;
+
+export const METODOS_PAGO = [
+  'Efectivo', 
+  'Débito PNC (US)', 
+  'Débito RD', 
+  'Crédito RD'
+] as const;
+
+export type Tienda = typeof TIENDAS[number];
+export type MetodoPago = typeof METODOS_PAGO[number];
+export type PresupuestoTipo = 'ingreso' | 'egreso';
+export type PresupuestoEstado = 'pagado' | 'pendiente';
+export type CalendarioTipo = 'evento' | 'tarea';
+export type CalendarioEstatus = 'pendiente' | 'completado';
+export type CajaEstado = 'en tránsito' | 'entregada';
+
+// --- Módulo Personal ---
+
+/**
+ * KPI data for the Personal Dashboard
+ * (app/(app)/page.tsx)
+ */
+export interface PersonalKpiData {
+  disponibleMes: number;
+  gastoPlanificado: number;
+  gastoReal: number;
+  diferencia: number;
+}
+
+/**
+ * Combined item for the "Esta Semana" feed
+ * (app/(app)/DashboardClient.tsx)
+ */
+export interface WeekFeedItem {
+  id: string;
+  title: string;
+  date: string; // Formatted date string
+  type: CalendarioTipo | 'pago';
+  amount?: number;
+}
+
+/**
+ * A single budget entry (unique or rule-based)
+ * (app/(app)/personal/presupuesto/...)
+ */
+export interface PresupuestoEntry {
+  id: string;
+  fecha: string; // ISO date string
+  descripcion: string;
+  categoria: string; // e.g., "Hogar", "Comida", "Salario"
+  tipo: PresupuestoTipo;
+  monto: number; // USD
+  estado: PresupuestoEstado;
+  notas?: string; // Optional notes
+}
+
+/**
+ * An event or task in the calendar
+ * (app/(app)/personal/calendario/...)
+ */
+export interface CalendarioItem {
+  id: string;
+  titulo: string;
+  inicio: string; // ISO datetime string
+  fin: string; // ISO datetime string
+  todoElDia: boolean;
+  categoria: string; // e.g., "Personal", "Trabajo"
+  notas?: string; // TipTap content
+  estatus: CalendarioEstatus;
+  tipo: CalendarioTipo;
+}
+
+/**
+ * A single note for either module
+ * (app/(app)/personal/notas/... or /vv/notas/...)
+ */
+export interface Nota {
+  id: string;
+  titulo: string;
+  contenido: string; // TipTap HTML content
+  pinned: boolean;
+  fechaActualizacion: string; // ISO datetime string
+  modulo: 'personal' | 'vv'; // To know which module it belongs to
+}
+
+// --- Módulo Variedades Vélez ---
+
+/**
+ * KPI data for the Variedades Vélez Dashboard
+ * (app/(app)/vv/page.tsx)
+ */
+export interface VVKpiData {
+  gastoMes: number;
+  cajasEnviadasMes: number;
+  pagosRecibidosMes: number;
+  saldoPendiente: number;
+}
+
+/**
+ * A single purchase record
+ * (app/(app)/vv/compras/...)
+ */
+export interface Compra {
+  id: string;
+  fecha: string; // ISO date string
+  tienda: Tienda;
+  descripcion: string;
+  metodoPago: MetodoPago;
+  monto: number; // USD
+  adjuntos?: string[]; // URLs to uploaded images/receipts
+  notas?: string; // TipTap content
+  cajaId?: string | null; // ID of the CajaEnvio it's assigned to
+  pagoStatus: 'sin-pago' | 'parcial' | 'saldada'; // Based on payments
+  montoPagado: number;
+}
+
+/**
+ * A record of a sent box
+ * (app/(app)/vv/cajas/...)
+ */
+export interface CajaEnvio {
+  id: string;
+  fechaEnvio: string; // ISO date string
+  numeroCaja: string; // e.g., "CZ-2025-001"
+  costo: number; // USD (defaults to 70)
+  estado: CajaEstado;
+  notas?: string;
+}
+
+/**
+ * A payment received from Rosa
+ * (app/(app)/vv/pagos/...)
+ */
+export interface PagoRecibido {
+  id: string;
+  fecha: string; // ISO date string
+  monto: number; // USD
+  notas?: string;
+  // Represents the link between a payment and the purchases it covers
+  asignaciones: {
+    compraId: string;
+    montoAsignado: number;
+  }[];
+}
